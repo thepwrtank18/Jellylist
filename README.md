@@ -6,7 +6,7 @@ Web server that creates M3U files for Jellyfin TV shows.
 1. Download GetLink.exe from the latest release.
 2. Put it somewhere safe.
 3. Open up a terminal in that area.
-4. Type in "GetLink.exe --urls http://localhost:[port] --publicUrl [URL to Jellyfin instance]"
+4. Type in `GetLink.exe --urls http://localhost:[port] --publicUrl [URL to Jellyfin instance]`
 5. Test it out by getting a series ID from your web browser (ex: [...]/web/index.html#!/details?id=8b578923c105ee3a6039330ceb4cbe94&context=tvshows&serverId=[...]), then open this in VLC: `http://localhost:[port]/GetM3U?seriesId=[series id]&username=[username]&password=[password]` OR `&authToken=[api key]`
 
 ## Screenshots
