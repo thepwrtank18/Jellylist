@@ -88,7 +88,14 @@ namespace GetLink.Controllers
 
                     foreach (var test2 in test.Items)
                     {
-                        returnstring += $"\n#EXTINF:0,{test2.SeriesName}, S{Convert.ToInt32(test2.ParentIndexNumber).ToString().PadLeft(2, '0')}E{Convert.ToInt32(test2.IndexNumber).ToString().PadLeft(2, '0')}: {test2.Name}";
+                        if (test2.IndexNumberEnd != null)
+                        {
+                            returnstring += $"\n#EXTINF:0,{test2.SeriesName}, S{Convert.ToInt32(test2.ParentIndexNumber).ToString().PadLeft(2, '0')}E{Convert.ToInt32(test2.IndexNumber).ToString().PadLeft(2, '0')}-{Convert.ToInt32(test2.IndexNumberEnd).ToString().PadLeft(2, '0')}: {test2.Name}";
+                        }
+                        else
+                        {
+                            returnstring += $"\n#EXTINF:0,{test2.SeriesName}, S{Convert.ToInt32(test2.ParentIndexNumber).ToString().PadLeft(2, '0')}E{Convert.ToInt32(test2.IndexNumber).ToString().PadLeft(2, '0')}: {test2.Name}";
+                        }
                         returnstring += "\n" + Program.publicUrl + $"/Items/{test2.Id}/Download?api_key={authToken}";
                     }
                 }
