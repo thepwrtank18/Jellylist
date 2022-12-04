@@ -16,6 +16,8 @@ More than 1 episode per listing: ✅
 
 Timestamps before episode is loaded: ❌
 
+Music: ❌
+
 ## Screenshots
 ![Screenshot of VLC, playing the first episode of Breaking Bad](Image0.png)
 ![Screenshot of VLC, showing most of the Breaking Bad episodes in a list](Image1.png)
