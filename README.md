@@ -14,7 +14,7 @@ Web server that creates M3U files for Jellyfin TV shows.
 
 More than 1 episode per listing: ✅
 
-Timestamps before episode is loaded: ❌
+Timestamps before episode is loaded: ✅
 
 Music: ❌
 

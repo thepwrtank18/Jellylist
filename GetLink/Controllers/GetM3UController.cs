@@ -56,12 +56,10 @@ namespace GetLink.Controllers
                 }
 
                 var httpResponse2 = (HttpWebResponse)httpRequest2.GetResponse();
-                using (var streamReader = new StreamReader(httpResponse2.GetResponseStream()))
-                {
-                    var result = streamReader.ReadToEnd();
-                    var test = JsonConvert.DeserializeObject<dynamic>(result);
-                    authToken = test.AccessToken;
-                }
+                using var streamReader = new StreamReader(httpResponse2.GetResponseStream());
+                var result = streamReader.ReadToEnd();
+                var test = JsonConvert.DeserializeObject<dynamic>(result);
+                authToken = test!.AccessToken;
             }
 
             var url = Program.publicUrl + $"/Shows/{seriesId}/Episodes?api_key={authToken}";
@@ -84,17 +82,21 @@ namespace GetLink.Controllers
                     var test = JsonConvert.DeserializeObject<dynamic>(result);
 
 
-                    returnstring += $"\n#PLAYLIST:{test.Items[0].SeriesName}";
+                    returnstring += $"\n#PLAYLIST:{test!.Items[0].SeriesName}";
 
                     foreach (var test2 in test.Items)
                     {
-                        if (test2.IndexNumberEnd != null)
+                        if (test2.IndexNumberEnd != null) // Is it a multi-episode file?
                         {
-                            returnstring += $"\n#EXTINF:0,{test2.SeriesName}, S{Convert.ToInt32(test2.ParentIndexNumber).ToString().PadLeft(2, '0')}E{Convert.ToInt32(test2.IndexNumber).ToString().PadLeft(2, '0')}-{Convert.ToInt32(test2.IndexNumberEnd).ToString().PadLeft(2, '0')}: {test2.Name}";
+                            returnstring += $"\n#EXTINF:{test2.RunTimeTicks / 10000 / 1000 /* seconds */},{test2.SeriesName}, " +
+                                            $"S{Convert.ToInt32(test2.ParentIndexNumber).ToString().PadLeft(2, '0') /* season # */}E{Convert.ToInt32(test2.IndexNumber).ToString().PadLeft(2, '0') /* first episode # */}" +
+                                            $"-{Convert.ToInt32(test2.IndexNumberEnd).ToString().PadLeft(2, '0') /* last episode # */}: {test2.Name}";
                         }
                         else
                         {
-                            returnstring += $"\n#EXTINF:0,{test2.SeriesName}, S{Convert.ToInt32(test2.ParentIndexNumber).ToString().PadLeft(2, '0')}E{Convert.ToInt32(test2.IndexNumber).ToString().PadLeft(2, '0')}: {test2.Name}";
+                            returnstring += $"\n#EXTINF:{test2.RunTimeTicks / 10000 / 1000 /* seconds */},{test2.SeriesName}, " +
+                                            $"S{Convert.ToInt32(test2.ParentIndexNumber).ToString().PadLeft(2, '0') /* season # */}E{Convert.ToInt32(test2.IndexNumber).ToString().PadLeft(2, '0') /* episode # */}: " +
+                                            $"{test2.Name}";
                         }
                         returnstring += "\n" + Program.publicUrl + $"/Items/{test2.Id}/Download?api_key={authToken}";
                     }
