@@ -26,7 +26,7 @@ namespace GetLink.Controllers
         /// <param name="password">The password. Required if an API key isn't specified, and the user has a password.</param>
         /// <returns></returns>
         [HttpGet(Name = "GetM3U")]
-        public string GetM3U(string seriesId, string? authToken = null, string? username = null, string? password = null)
+        public string GetM3U(string seriesId, string? authToken = null, string? username = null, string? password = null, string returnType = "m3u")
         {
 
             if (authToken == null) // no auth token
@@ -67,49 +67,83 @@ namespace GetLink.Controllers
             var httpRequest = (HttpWebRequest)WebRequest.Create(url);
 
             httpRequest.Accept = "application/json";
-
-            string returnstring = 
-                """
+            if (returnType == "m3u")
+            {
+                string returnstring =
+    """
                 #EXTM3U
                 """;
 
-            try
-            {
-                var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
-                using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                try
                 {
-                    var result = streamReader.ReadToEnd();
-                    var test = JsonConvert.DeserializeObject<dynamic>(result);
-
-
-                    returnstring += $"\n#PLAYLIST:{test!.Items[0].SeriesName}";
-
-                    foreach (var test2 in test.Items)
+                    var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+                    using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
                     {
-                        if (test2.IndexNumberEnd != null) // Is it a multi-episode file?
+                        var result = streamReader.ReadToEnd();
+                        var test = JsonConvert.DeserializeObject<dynamic>(result);
+
+
+                        returnstring += $"\n#PLAYLIST:{test!.Items[0].SeriesName}";
+
+                        foreach (var test2 in test.Items)
                         {
-                            returnstring += $"\n#EXTINF:{test2.RunTimeTicks / 10000 / 1000 /* seconds */},{test2.SeriesName}, " +
-                                            $"S{Convert.ToInt32(test2.ParentIndexNumber).ToString().PadLeft(2, '0') /* season # */}E{Convert.ToInt32(test2.IndexNumber).ToString().PadLeft(2, '0') /* first episode # */}" +
-                                            $"-{Convert.ToInt32(test2.IndexNumberEnd).ToString().PadLeft(2, '0') /* last episode # */}: {test2.Name}";
+                            if (test2.IndexNumberEnd != null) // Is it a multi-episode file?
+                            {
+                                returnstring += $"\n#EXTINF:{test2.RunTimeTicks / 10000 / 1000 /* seconds */},{test2.SeriesName}, " +
+                                                $"S{Convert.ToInt32(test2.ParentIndexNumber).ToString().PadLeft(2, '0') /* season # */}E{Convert.ToInt32(test2.IndexNumber).ToString().PadLeft(2, '0') /* first episode # */}" +
+                                                $"-{Convert.ToInt32(test2.IndexNumberEnd).ToString().PadLeft(2, '0') /* last episode # */}: {test2.Name}";
+                            }
+                            else
+                            {
+                                returnstring += $"\n#EXTINF:{test2.RunTimeTicks / 10000 / 1000 /* seconds */},{test2.SeriesName}, " +
+                                                $"S{Convert.ToInt32(test2.ParentIndexNumber).ToString().PadLeft(2, '0') /* season # */}E{Convert.ToInt32(test2.IndexNumber).ToString().PadLeft(2, '0') /* episode # */}: " +
+                                                $"{test2.Name}";
+                            }
+                            returnstring += "\n" + Program.publicUrl + $"/Items/{test2.Id}/Download?api_key={authToken}";
                         }
-                        else
-                        {
-                            returnstring += $"\n#EXTINF:{test2.RunTimeTicks / 10000 / 1000 /* seconds */},{test2.SeriesName}, " +
-                                            $"S{Convert.ToInt32(test2.ParentIndexNumber).ToString().PadLeft(2, '0') /* season # */}E{Convert.ToInt32(test2.IndexNumber).ToString().PadLeft(2, '0') /* episode # */}: " +
-                                            $"{test2.Name}";
-                        }
-                        returnstring += "\n" + Program.publicUrl + $"/Items/{test2.Id}/Download?api_key={authToken}";
+                    }
+
+                    return returnstring;
+                }
+                catch (WebException e)
+                {
+                    if (e.Message.Contains("404"))
+                    {
+                        return "Not a TV show.";
                     }
                 }
-
-                return returnstring;
             }
-            catch (WebException e)
+            else if (returnType == "txt") // only links, no other metadata
             {
-                if (e.Message.Contains("404"))
+                string returnstring = "";
+
+                try
                 {
-                    return "Not a TV show.";
+                    var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+                    using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                    {
+                        var result = streamReader.ReadToEnd();
+                        var test = JsonConvert.DeserializeObject<dynamic>(result);
+
+                        foreach (var test2 in test.Items)
+                        {
+                            returnstring += Program.publicUrl + $"/Items/{test2.Id}/Download?api_key={authToken}\n";
+                        }
+                    }
+
+                    return returnstring;
                 }
+                catch (WebException e)
+                {
+                    if (e.Message.Contains("404"))
+                    {
+                        return "Not a TV show.";
+                    }
+                }
+            }
+            else
+            {
+                return "Invalid type.";
             }
 
             return "An unknown error occurred.";
