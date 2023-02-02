@@ -17,9 +17,9 @@ You don't have to be a manager of the instance for this to work, but your accoun
 Note that unless you're using a dedicated API key for the `authToken` parameter, these files will stop working after a while! It's best not to save the m3u files, and rather to put the URL directly in your media player of choice.
 
 ## Supports
-1 episode per listing: ✅
+1 episode per file: ✅
 
-More than 1 episode per listing: ✅
+More than 1 episode per file: ✅
 
 Timestamps before episode is loaded: ✅
 
