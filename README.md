@@ -12,7 +12,7 @@ Web server that creates M3U files for TV shows on a Jellyfin instance.
 
 If you want to mass download an entire season with a program like Free Download Manager, you can add "&returnType=txt" to the end, removing all metadata other than download links.
 
-You don't have to be a manager of the instance for this to work, but your account needs to have download permissions.
+You don't have to be a manager of the instance for this to work, but your account needs to have download permissions, as your player is downloading the original file.
 
 Note that unless you're using a dedicated API key for the `authToken` parameter, these files will stop working after a while! It's best not to save the m3u files, and rather to put the URL directly in your media player of choice.
 
