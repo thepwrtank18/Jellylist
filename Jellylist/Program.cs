@@ -8,9 +8,9 @@ namespace GetLink
         public static void Main(string[] args)
         {
             int currentArg = -1;
-            if (!args.Contains("--publicUrl"))
+            if (!args.Contains("--jellyfinUrl"))
             {
-                Console.WriteLine("Please put --publicUrl in the console, followed by the URL you use to access Jellyfin. (ex: https://jellyfin.example.com/[subdir if applicable])");
+                Console.WriteLine("Please put --jellyfinUrl in the console, followed by the URL you use to access Jellyfin. (ex: http(s)://jellyfin.example.com/[subdir if applicable])");
                 Environment.Exit(1);
             }
             foreach (string arg in args)
