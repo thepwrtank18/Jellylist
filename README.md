@@ -1,4 +1,5 @@
 # Jellylist
+#### (formerly GetLink)
 Web server that creates M3U files for TV shows on a Jellyfin instance.
 
 ## Setup
