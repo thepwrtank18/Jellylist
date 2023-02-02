@@ -2,7 +2,7 @@
 Web server that creates M3U files for Jellyfin TV shows.
 
 ## Setup
-*These instructions only work for Windows. I haven't tested Linux or macOS yet, but builds are available. I haven't used any Windows-specific features, so it should be fine as long as you have .NET 7 installed.*
+*These instructions only work for Windows 10/Server 2016 or later. I haven't tested Linux or macOS yet, but builds are available. I haven't used any Windows-specific features, so it should be fine as long as you have .NET 7 installed. Windows 8.1/Server 2012 R2 or earlier is not supported (rip windows 7).*
 1. Download GetLink.exe from the latest release.
 2. Put it somewhere safe.
 3. Open up a terminal in that area.
