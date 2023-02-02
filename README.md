@@ -14,7 +14,7 @@ If you want to mass download an entire season with a program like Free Download 
 
 You don't have to be a manager of the instance for this to work, but your account needs to have download permissions.
 
-Note that unless you're using a dedicated API key for the `authToken` parameter, these files will stop working after a while! It's best not to save the files, and rather to put the URL directly in your media player of choice.
+Note that unless you're using a dedicated API key for the `authToken` parameter, these files will stop working after a while! It's best not to save the m3u files, and rather to put the URL directly in your media player of choice.
 
 ## Supports
 1 episode per listing: ✅
