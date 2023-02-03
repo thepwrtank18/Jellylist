@@ -16,7 +16,7 @@ namespace GetLink
             foreach (string arg in args)
             {
                 currentArg++;
-                if (arg == "--publicUrl")
+                if (arg == "--jellyfinUrl")
                 {
                     publicUrl = args[currentArg + 1];
                 }
