@@ -1,22 +1,15 @@
-using Microsoft.AspNetCore.Mvc;
 using System.Net;
-using Microsoft.Extensions.WebEncoders.Testing;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+// ReSharper disable StringLiteralTypo
+// ReSharper disable IdentifierTypo
 
-namespace GetLink.Controllers
+namespace Jellylist.Controllers
 {
-
     [ApiController]
     [Route("[controller]")]
     public class GetM3UController : ControllerBase
     {
-        private readonly ILogger<GetM3UController> _logger;
-
-        public GetM3UController(ILogger<GetM3UController> logger)
-        {
-            _logger = logger;
-        }
-
         /// <summary>
         /// Creates an M3U file, and returns the text. 
         /// </summary>
@@ -24,9 +17,33 @@ namespace GetLink.Controllers
         /// <param name="authToken">An API key. Takes priority over username and password.</param>
         /// <param name="username">The username. Required if an API key isn't specified.</param>
         /// <param name="password">The password. Required if an API key isn't specified, and the user has a password.</param>
+        /// <param name="returnType">The return type, either m3u for full metadata or txt for just the links, no other metadata.</param>
         /// <returns></returns>
+        [Obsolete("Replaced with GetList. Endpoint is no longer being updated and may stop working.")]
         [HttpGet(Name = "GetM3U")]
-        public string GetM3U(string seriesId, string? authToken = null, string? username = null, string? password = null, string returnType = "m3u")
+        public string GetM3U(string seriesId, string? authToken = null, string? username = null,
+            string? password = null, string returnType = "m3u")
+        {
+            return new GetListController().GetList(seriesId, authToken, username, password, returnType);
+        }
+    }
+    
+    
+    [ApiController]
+    [Route("[controller]")]
+    public class GetListController : ControllerBase
+    {
+        /// <summary>
+        /// Creates an M3U file, and returns the text. 
+        /// </summary>
+        /// <param name="seriesId">The series ID.</param>
+        /// <param name="authToken">An API key. Takes priority over username and password.</param>
+        /// <param name="username">The username. Required if an API key isn't specified.</param>
+        /// <param name="password">The password. Required if an API key isn't specified, and the user has a password.</param>
+        /// <param name="returnType">The return type, either m3u for full metadata or txt for just the links, no other metadata.</param>
+        /// <returns></returns>
+        [HttpGet(Name = "GetList")]
+        public string GetList(string seriesId, string? authToken = null, string? username = null, string? password = null, string returnType = "m3u")
         {
 
             if (authToken == null) // no auth token
@@ -35,7 +52,7 @@ namespace GetLink.Controllers
                 {
                     return "No login details specified.";
                 }
-                var url2 = Program.publicUrl + "/Users/AuthenticateByName";
+                var url2 = Program.PublicUrl + "/Users/AuthenticateByName";
 
                 var httpRequest2 = (HttpWebRequest)WebRequest.Create(url2);
                 httpRequest2.Method = "POST";
@@ -62,7 +79,7 @@ namespace GetLink.Controllers
                 authToken = test!.AccessToken;
             }
 
-            var url = Program.publicUrl + $"/Shows/{seriesId}/Episodes?api_key={authToken}";
+            var url = Program.PublicUrl + $"/Shows/{seriesId}/Episodes?api_key={authToken}";
 
             var httpRequest = (HttpWebRequest)WebRequest.Create(url);
 
@@ -70,37 +87,35 @@ namespace GetLink.Controllers
             if (returnType == "m3u")
             {
                 string returnstring =
-    """
+                """
                 #EXTM3U
                 """;
 
                 try
                 {
                     var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
-                    using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                    using var streamReader = new StreamReader(httpResponse.GetResponseStream());
+                    var result = streamReader.ReadToEnd();
+                    var test = JsonConvert.DeserializeObject<dynamic>(result);
+
+
+                    returnstring += $"\n#PLAYLIST:{test!.Items[0].SeriesName}";
+
+                    foreach (var test2 in test.Items)
                     {
-                        var result = streamReader.ReadToEnd();
-                        var test = JsonConvert.DeserializeObject<dynamic>(result);
-
-
-                        returnstring += $"\n#PLAYLIST:{test!.Items[0].SeriesName}";
-
-                        foreach (var test2 in test.Items)
+                        if (test2.IndexNumberEnd != null) // Is it a multi-episode file?
                         {
-                            if (test2.IndexNumberEnd != null) // Is it a multi-episode file?
-                            {
-                                returnstring += $"\n#EXTINF:{test2.RunTimeTicks / 10000 / 1000 /* seconds */},{test2.SeriesName}, " +
-                                                $"S{Convert.ToInt32(test2.ParentIndexNumber).ToString().PadLeft(2, '0') /* season # */}E{Convert.ToInt32(test2.IndexNumber).ToString().PadLeft(2, '0') /* first episode # */}" +
-                                                $"-{Convert.ToInt32(test2.IndexNumberEnd).ToString().PadLeft(2, '0') /* last episode # */}: {test2.Name}";
-                            }
-                            else
-                            {
-                                returnstring += $"\n#EXTINF:{test2.RunTimeTicks / 10000 / 1000 /* seconds */},{test2.SeriesName}, " +
-                                                $"S{Convert.ToInt32(test2.ParentIndexNumber).ToString().PadLeft(2, '0') /* season # */}E{Convert.ToInt32(test2.IndexNumber).ToString().PadLeft(2, '0') /* episode # */}: " +
-                                                $"{test2.Name}";
-                            }
-                            returnstring += "\n" + Program.publicUrl + $"/Items/{test2.Id}/Download?api_key={authToken}";
+                            returnstring += $"\n#EXTINF:{test2.RunTimeTicks / 10000 / 1000 /* seconds */},{test2.SeriesName}, " +
+                                            $"S{Convert.ToInt32(test2.ParentIndexNumber).ToString().PadLeft(2, '0') /* season # */}E{Convert.ToInt32(test2.IndexNumber).ToString().PadLeft(2, '0') /* first episode # */}" +
+                                            $"-{Convert.ToInt32(test2.IndexNumberEnd).ToString().PadLeft(2, '0') /* last episode # */}: {test2.Name}";
                         }
+                        else
+                        {
+                            returnstring += $"\n#EXTINF:{test2.RunTimeTicks / 10000 / 1000 /* seconds */},{test2.SeriesName}, " +
+                                            $"S{Convert.ToInt32(test2.ParentIndexNumber).ToString().PadLeft(2, '0') /* season # */}E{Convert.ToInt32(test2.IndexNumber).ToString().PadLeft(2, '0') /* episode # */}: " +
+                                            $"{test2.Name}";
+                        }
+                        returnstring += "\n" + Program.PublicUrl + $"/Items/{test2.Id}/Download?api_key={authToken}";
                     }
 
                     return returnstring;
@@ -120,15 +135,14 @@ namespace GetLink.Controllers
                 try
                 {
                     var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
-                    using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
-                    {
-                        var result = streamReader.ReadToEnd();
-                        var test = JsonConvert.DeserializeObject<dynamic>(result);
+                    using var streamReader = new StreamReader(httpResponse.GetResponseStream());
+                    var result = streamReader.ReadToEnd();
+                    var test = JsonConvert.DeserializeObject<dynamic>(result);
 
-                        foreach (var test2 in test.Items)
-                        {
-                            returnstring += Program.publicUrl + $"/Items/{test2.Id}/Download?api_key={authToken}\n";
-                        }
+                    if (test == null) return returnstring;
+                    foreach (var test2 in test.Items)
+                    {
+                        returnstring += Program.PublicUrl + $"/Items/{test2.Id}/Download?api_key={authToken}\n";
                     }
 
                     return returnstring;

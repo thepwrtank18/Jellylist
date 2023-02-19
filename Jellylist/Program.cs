@@ -1,9 +1,10 @@
 
-namespace GetLink
+// ReSharper disable StringLiteralTypo
+namespace Jellylist
 {
-    public class Program
+    public abstract class Program
     {
-        public static string publicUrl = "";
+        public static string PublicUrl = "";
 
         public static void Main(string[] args)
         {
@@ -18,7 +19,7 @@ namespace GetLink
                 currentArg++;
                 if (arg == "--jellyfinUrl")
                 {
-                    publicUrl = args[currentArg + 1];
+                    PublicUrl = args[currentArg + 1];
                 }
             }
 
