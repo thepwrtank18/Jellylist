@@ -3,6 +3,8 @@
 Web server that creates M3U files for TV shows on a Jellyfin instance.
 
 ## Setup
+**To read the version of this README that works with the version of Jellylist you have, go to `https://github&#46;com/thepwrtank18/Jellylist/tree/[version]`.**
+
 *These instructions only work for Windows 10/Server 2016 or later. Linux or macOS have not been tested yet, but builds are available. No Windows-specific features have been used, so it should be fine as long as you have .NET 7 installed. Windows 8.1/Server 2008 R2, macOS 10.15 Catalina or earlier is not supported (rip windows 7). Linux may vary, see https://learn.microsoft.com/en-us/dotnet/core/install/linux.*
 1. Download the latest release.
 2. Put the folder somewhere safe.
