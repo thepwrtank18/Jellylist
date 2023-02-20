@@ -1,16 +1,17 @@
 // ReSharper disable StringLiteralTypo
 
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
 namespace Jellylist
 {
-    public abstract class Program
+    public abstract partial class Program
     {
+        [SuppressMessage("Usage", "CA2211:Non-constant fields should not be visible")] 
         public static string PublicUrl = "";
 
         public static void Main(string[] args)
         {
-            const string urlPattern = @"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)"; // the language of gods
             int currentArg = -1;
             if (!args.Contains("--jellyfinUrl"))
             {
@@ -26,7 +27,7 @@ namespace Jellylist
                     string completeUrl = "";
                     try
                     {
-                        foreach (Match m in Regex.Matches(args[currentArg + 1], urlPattern, RegexOptions.Multiline))
+                        foreach (Match m in UrlRegex().Matches(args[currentArg + 1]))
                         {
                             matches++;
                             if (matches == 1)
@@ -84,5 +85,8 @@ namespace Jellylist
 
             app.Run();
         }
+
+        [GeneratedRegex("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&\\/\\/=]*)", RegexOptions.Multiline)] // the language of gods
+        private static partial Regex UrlRegex();
     }
 }

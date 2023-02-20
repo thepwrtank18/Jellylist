@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 // ReSharper disable StringLiteralTypo
 // ReSharper disable IdentifierTypo
 // ReSharper disable CommentTypo
+// ReSharper disable SuggestVarOrType_SimpleTypes
 
 namespace Jellylist.Controllers
 {
@@ -12,32 +13,32 @@ namespace Jellylist.Controllers
     {
         public static async Task<string> MakePostRequest(string url, string data, string embyAuth)
         {
-            using var httpClient = new HttpClient();
-            var content = new StringContent(data);
+            using HttpClient httpClient = new HttpClient();
+            StringContent content = new StringContent(data);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
             httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0");
 
-            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             request.Headers.Add("X-Emby-Authorization", embyAuth);
             request.Content = content;
 
-            var response = await httpClient.SendAsync(request);
-            var responseString = await response.Content.ReadAsStringAsync();
+            HttpResponseMessage response = await httpClient.SendAsync(request);
+            string responseString = await response.Content.ReadAsStringAsync();
             return responseString;
         }
         
         public static async Task<string> MakeGetRequest(string url, string embyAuth)
         {
-            using var httpClient = new HttpClient();
+            using HttpClient httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
             httpClient.DefaultRequestHeaders.Add("ContentType", "application/json");
             httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0");
             httpClient.DefaultRequestHeaders.Add("X-Emby-Authorization", embyAuth);
 
-            var response = await httpClient.GetAsync(url);
-            var responseString = await response.Content.ReadAsStringAsync();
+            HttpResponseMessage response = await httpClient.GetAsync(url);
+            string responseString = await response.Content.ReadAsStringAsync();
             return responseString;
         }
     }
@@ -68,44 +69,26 @@ namespace Jellylist.Controllers
                     return "No login details specified.";
                 }
 
-                /*var url2 = Program.PublicUrl + "/Users/AuthenticateByName";
-                var httpRequest2 = (HttpWebRequest)WebRequest.Create(url2);
-                httpRequest2.Method = "POST";
-                
-                httpRequest2.Accept = "application/json";
-                httpRequest2.Headers["X-Emby-Authorization"] = "MediaBrowser Client=\"Jellyfin Web\", Device=\"Firefox\", DeviceId=\"TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NDsgcnY6MTA2LjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvMTA2LjB8MTY2Nzk1OTA0NjIxNg11\", Version=\"10.8.5\"";
-                httpRequest2.Headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0";
-                httpRequest2.ContentType = "application/json";
-
-                using (var streamWriter = new StreamWriter(httpRequest2.GetRequestStream()))
-                {
-                    streamWriter.Write(data);
-                }
-                
-                var httpResponse2 = (HttpWebResponse)httpRequest2.GetResponse();
-                using var streamReader = new StreamReader(httpResponse2.GetResponseStream());
-                var result = streamReader.ReadToEnd();*/
-                
-                var data = @"{
+                string data = @"{
                                       ""Username"": ""[username]"",
                                       ""Pw"": ""[pass]""
                              }".Replace("[username]", username).Replace("[pass]", password);
-                var result = await Shared.MakePostRequest(Program.PublicUrl + "/Users/AuthenticateByName", data, 
+                string result = await Shared.MakePostRequest(Program.PublicUrl + "/Users/AuthenticateByName", data, 
                     "MediaBrowser Client=\"Jellyfin Web\", Device=\"Firefox\", DeviceId=\"TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NDsgcnY6MTA2LjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvMTA2LjB8MTY2Nzk1OTA0NjIxNg11\", Version=\"10.8.5\"");
-                var test = JsonConvert.DeserializeObject<dynamic>(result);
+                dynamic? test = JsonConvert.DeserializeObject<dynamic>(result);
                 authToken = test!.AccessToken;
                 userId = test.User.Id;
             }
             else
             {
-                var result = await Shared.MakeGetRequest(Program.PublicUrl + "/Users/Me",
+                string result = await Shared.MakeGetRequest(Program.PublicUrl + "/Users/Me",
                     $"MediaBrowser Client=\"Jellyfin Web\", Device=\"Firefox\", DeviceId=\"TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NDsgcnY6MTA2LjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvMTA2LjB8MTY2Nzk1OTA0NjIxNg11\", Version=\"10.8.5\", Token=\"{authToken}\"");
-                var test = JsonConvert.DeserializeObject<dynamic>(result);
+                dynamic? test = JsonConvert.DeserializeObject<dynamic>(result);
 
                 userId = test!.Id;
             }
 
-            var url = Program.PublicUrl + $"/Users/{userId}/Items?ParentId={albumId}&Fields=ItemCounts%2CPrimaryImageAspectRatio%2CBasicSyncInfo%2CCanDelete%2CMediaSourceCount&SortBy=ParentIndexNumber%2CIndexNumber%2CSortName";
+            string url = Program.PublicUrl + $"/Users/{userId}/Items?ParentId={albumId}&Fields=ItemCounts%2CPrimaryImageAspectRatio%2CBasicSyncInfo%2CCanDelete%2CMediaSourceCount&SortBy=ParentIndexNumber%2CIndexNumber%2CSortName";
             
             switch (returnType)
             {
@@ -118,16 +101,16 @@ namespace Jellylist.Controllers
                 
                     try
                     {
-                        var result = await Shared.MakeGetRequest(url,
+                        string result = await Shared.MakeGetRequest(url,
                             $"MediaBrowser Client=\"Jellyfin Web\", Device=\"Firefox\", DeviceId=\"TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NDsgcnY6MTA2LjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvMTA2LjB8MTY2Nzk1OTA0NjIxNg11\", Version=\"10.8.5\", Token=\"{authToken}\"");
-                        var test = JsonConvert.DeserializeObject<dynamic>(result);
+                        dynamic? test = JsonConvert.DeserializeObject<dynamic>(result);
 
 
                         returnstring += $"\n#PLAYLIST:{test!.Items[0].Album}";
                         returnstring += $"\n#EXTALB:{test.Items[0].Album}";
                         returnstring += $"\n#EXTART:{test.Items[0].AlbumArtist}";
 
-                        foreach (var test2 in test.Items)
+                        foreach (dynamic? test2 in test.Items)
                         {
                             returnstring += $"\n#EXTINF:{test2.RunTimeTicks / 10000 / 1000 /* seconds */},{test2.Album}, " +
                                             $"Disc {Convert.ToInt32(test2.ParentIndexNumber).ToString().PadLeft(2, '0')}, Track {Convert.ToInt32(test2.IndexNumber).ToString().PadLeft(2, '0')}: " +
@@ -148,11 +131,11 @@ namespace Jellylist.Controllers
                 
                     try
                     {
-                        var result = await Shared.MakeGetRequest(url,
+                        string result = await Shared.MakeGetRequest(url,
                             $"MediaBrowser Client=\"Jellyfin Web\", Device=\"Firefox\", DeviceId=\"TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NDsgcnY6MTA2LjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvMTA2LjB8MTY2Nzk1OTA0NjIxNg11\", Version=\"10.8.5\", Token=\"{authToken}\"");
-                        var test = JsonConvert.DeserializeObject<dynamic>(result);
+                        dynamic? test = JsonConvert.DeserializeObject<dynamic>(result);
 
-                        foreach (var test2 in test!.Items)
+                        foreach (dynamic? test2 in test!.Items)
                         {
                             returnstring += "\n" + Program.PublicUrl + $"/Items/{test2.Id}/Download?api_key={authToken}";
                         }
@@ -195,40 +178,17 @@ namespace Jellylist.Controllers
                 {
                     return "No login details specified.";
                 }
-                /*var url2 = Program.PublicUrl + "/Users/AuthenticateByName";
-
-                var httpRequest2 = (HttpWebRequest)WebRequest.Create(url2);
-                httpRequest2.Method = "POST";
-
-                httpRequest2.Accept = "application/json";
-                httpRequest2.Headers["X-Emby-Authorization"] = "MediaBrowser Client=\"Jellyfin Web\", Device=\"Firefox\", DeviceId=\"TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NDsgcnY6MTA2LjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvMTA2LjB8MTY2Nzk1OTA0NjIxNg11\", Version=\"10.8.5\"";
-                httpRequest2.Headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0";
-                httpRequest2.ContentType = "application/json";
-
-                var data = @"{
+                string data = @"{
                                       ""Username"": ""[username]"",
                                       ""Pw"": ""[pass]""
                              }".Replace("[username]", username).Replace("[pass]", password);
-
-                using (var streamWriter = new StreamWriter(httpRequest2.GetRequestStream()))
-                {
-                    streamWriter.Write(data);
-                }
-
-                var httpResponse2 = (HttpWebResponse)httpRequest2.GetResponse();
-                using var streamReader = new StreamReader(httpResponse2.GetResponseStream());
-                var result = streamReader.ReadToEnd();*/
-                var data = @"{
-                                      ""Username"": ""[username]"",
-                                      ""Pw"": ""[pass]""
-                             }".Replace("[username]", username).Replace("[pass]", password);
-                var result = await Shared.MakePostRequest(Program.PublicUrl + "/Users/AuthenticateByName", data, 
+                string result = await Shared.MakePostRequest(Program.PublicUrl + "/Users/AuthenticateByName", data, 
                     "MediaBrowser Client=\"Jellyfin Web\", Device=\"Firefox\", DeviceId=\"TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NDsgcnY6MTA2LjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvMTA2LjB8MTY2Nzk1OTA0NjIxNg11\", Version=\"10.8.5\"");
-                var test = JsonConvert.DeserializeObject<dynamic>(result);
+                dynamic? test = JsonConvert.DeserializeObject<dynamic>(result);
                 authToken = test!.AccessToken;
             }
 
-            var url = Program.PublicUrl + $"/Shows/{seriesId}/Episodes?api_key={authToken}";
+            string url = Program.PublicUrl + $"/Shows/{seriesId}/Episodes?api_key={authToken}";
             
             switch (returnType)
             {
@@ -241,13 +201,13 @@ namespace Jellylist.Controllers
 
                     try
                     {
-                        var result = await Shared.MakeGetRequest(url, "");
-                        var test = JsonConvert.DeserializeObject<dynamic>(result);
+                        string result = await Shared.MakeGetRequest(url, "");
+                        dynamic? test = JsonConvert.DeserializeObject<dynamic>(result);
 
 
                         returnstring += $"\n#PLAYLIST:{test!.Items[0].SeriesName}";
 
-                        foreach (var test2 in test.Items)
+                        foreach (dynamic? test2 in test.Items)
                         {
                             if (test2.IndexNumberEnd != null) // Is it a multi-episode file?
                             {
@@ -278,11 +238,11 @@ namespace Jellylist.Controllers
 
                     try
                     {
-                        var result = await Shared.MakeGetRequest(url, "");
-                        var test = JsonConvert.DeserializeObject<dynamic>(result);
+                        string result = await Shared.MakeGetRequest(url, "");
+                        dynamic? test = JsonConvert.DeserializeObject<dynamic>(result);
 
                         if (test == null) return returnstring;
-                        foreach (var test2 in test.Items)
+                        foreach (dynamic? test2 in test.Items)
                         {
                             returnstring += Program.PublicUrl + $"/Items/{test2.Id}/Download?api_key={authToken}\n";
                         }
