@@ -27,6 +27,13 @@ You don't have to be a manager of the Jellyfin instance for this to work, but yo
 
 Note that unless you're using a dedicated API key for the `authToken` parameter, these files will stop working after a while! It's best not to save the m3u files, and rather to put the URL directly in your media player of choice.
 
+## Building/Publishing
+You'll need the .NET 7 SDK. You can download this at https://dotnet.microsoft.com/en-us/download/dotnet/7.0.
+
+Then, run publish.cmd in the Jellylist folder to make a complete build for all platforms.
+
+Or, you can import the project into your IDE of choice (Visual Studio, Rider, VS Code, etc). Rider is recommended.
+
 ## Screenshots
 ![Screenshot of VLC, playing the 4th/5th episode of Regular Show, season 4](Image0.png)
 ![Screenshot of VLC, showing some of the Regular Show episodes in a list](Image1.png)
