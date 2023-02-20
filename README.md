@@ -10,23 +10,24 @@ Web server that creates M3U files for TV shows on a Jellyfin instance.
 2. Put the folder somewhere safe.
 3. Open up a terminal in that area.
 4. Type in `Jellylist.exe --urls http://localhost:[port] --jellyfinUrl [URL to Jellyfin instance]`
-5. Test it out by getting a series ID from your web browser (ex: `[...]/web/index.html#!/details?id=[series id]&context=tvshows&serverId=[...]`), then open this in VLC: `http://localhost:[port]/GetList?seriesId=[series id]&username=[username]&password=[password]` OR `&authToken=[api key]` (if you put in both username, password, and auth token, the auth token takes priority)
 
-If you want to mass download an entire season with a program like Free Download Manager, or your media player doesn't support EXTM3U, you can add `&returnType=txt` to the end, removing all metadata other than download links.
+After that, the web server is set up (minus port forwarding and stuff, but that's your problem to deal with).
 
-You don't have to be a manager of the instance for this to work, but your account needs to have download permissions, as your player is downloading the original file.
+To play a TV show or album in VLC, you'll need it's ID. You can find the ID in the URL of a TV show or album (ex: https://demo.jellyfin.org/web/index.html#!/details?id=05991932707d2c668148d8ed19cdb544).
+* For TV shows, put this into your media player: `http://localhost:[port]/GetTV?seriesId=[id]&username=[username]&password=[password]`
+* For albums, put this in instead: `http://localhost:[port]/GetAlbum?albumId=[id]&username=[username]&password=[password]`
+
+What you see on album covers and other metadata beyond the album and track name relies **entirely** on the metadata inside the file.
+
+Don't want to use usernames and passwords? You can use an auth token or API key by using the `authToken` parameter instead of `username` and `password`.
+
+If you want to mass download an entire show or album with a program like Free Download Manager, or your media player doesn't support EXTM3U, you can add `&returnType=txt` to the end, removing all metadata other than download links.
+
+You don't have to be a manager of the Jellyfin instance for this to work, but your account needs to have download permissions, as your player is downloading the original file.
 
 Note that unless you're using a dedicated API key for the `authToken` parameter, these files will stop working after a while! It's best not to save the m3u files, and rather to put the URL directly in your media player of choice.
-
-## Supports
-1 episode per file: ✅
-
-More than 1 episode per file: ✅
-
-Timestamps before episode is loaded: ✅
-
-Music: ❌
 
 ## Screenshots
 ![Screenshot of VLC, playing the first episode of Star vs. the Forces of Evil](Image0.png)
 ![Screenshot of VLC, showing most of the SvtFoE episodes in a list](Image1.png)
+![Screenshot of VLC, playing the first track of Graduation by Kanye West](Image2.png)
