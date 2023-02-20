@@ -28,6 +28,6 @@ You don't have to be a manager of the Jellyfin instance for this to work, but yo
 Note that unless you're using a dedicated API key for the `authToken` parameter, these files will stop working after a while! It's best not to save the m3u files, and rather to put the URL directly in your media player of choice.
 
 ## Screenshots
-![Screenshot of VLC, playing the first episode of Star vs. the Forces of Evil](Image0.png)
-![Screenshot of VLC, showing most of the SvtFoE episodes in a list](Image1.png)
+![Screenshot of VLC, playing the 4th/5th episode of Regular Show, season 4](Image0.png)
+![Screenshot of VLC, showing some of the Regular Show episodes in a list](Image1.png)
 ![Screenshot of VLC, playing the first track of Graduation by Kanye West](Image2.png)
