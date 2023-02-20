@@ -124,7 +124,10 @@ namespace Jellylist.Controllers
 
 
                         returnstring += $"\n#PLAYLIST:{test!.Items[0].Album}";
-
+                        returnstring += $"\n#EXTALB:{test!.Items[0].Album}";
+                        returnstring += $"\n#EXTART:{test!.Items[0].AlbumArtist}";
+                        //returnstring += $"\n#EXTIMG: front cover\n{Program.PublicUrl}/Items/{albumId}/Images/Primary"; // VLC doesn't like this for some reason
+                            
                         foreach (var test2 in test.Items)
                         {
                             returnstring += $"\n#EXTINF:{test2.RunTimeTicks / 10000 / 1000 /* seconds */},{test2.Album}, " +
