@@ -1,30 +1,44 @@
 using System.Net;
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 // ReSharper disable StringLiteralTypo
 // ReSharper disable IdentifierTypo
+// ReSharper disable CommentTypo
 
 namespace Jellylist.Controllers
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class GetM3UController : ControllerBase
+    public abstract class Shared
     {
-        /// <summary>
-        /// Creates an M3U file, and returns the text. 
-        /// </summary>
-        /// <param name="seriesId">The series ID.</param>
-        /// <param name="authToken">An API key. Takes priority over username and password.</param>
-        /// <param name="username">The username. Required if an API key isn't specified.</param>
-        /// <param name="password">The password. Required if an API key isn't specified, and the user has a password.</param>
-        /// <param name="returnType">The return type, either m3u for full metadata or txt for just the links, no other metadata.</param>
-        /// <returns></returns>
-        [Obsolete("Replaced with GetList. Endpoint is no longer being updated and may stop working.")]
-        [HttpGet(Name = "GetM3U")]
-        public string GetM3U(string seriesId, string? authToken = null, string? username = null,
-            string? password = null, string returnType = "m3u")
+        public static async Task<string> MakePostRequest(string url, string data, string embyAuth)
         {
-            return new GetTVController().GetTV(seriesId, authToken, username, password, returnType);
+            using var httpClient = new HttpClient();
+            var content = new StringContent(data);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0");
+
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            request.Headers.Add("X-Emby-Authorization", embyAuth);
+            request.Content = content;
+
+            var response = await httpClient.SendAsync(request);
+            var responseString = await response.Content.ReadAsStringAsync();
+            return responseString;
+        }
+        
+        public static async Task<string> MakeGetRequest(string url, string embyAuth)
+        {
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+            httpClient.DefaultRequestHeaders.Add("ContentType", "application/json");
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0");
+            httpClient.DefaultRequestHeaders.Add("X-Emby-Authorization", embyAuth);
+
+            var response = await httpClient.GetAsync(url);
+            var responseString = await response.Content.ReadAsStringAsync();
+            return responseString;
         }
     }
 
@@ -42,7 +56,7 @@ namespace Jellylist.Controllers
         /// <param name="returnType"></param>
         /// <returns></returns>
         [HttpGet(Name = "GetAlbum")]
-        public string GetAlbum(string albumId, string? authToken = null, string? username = null,
+        public async Task<string> GetAlbum(string albumId, string? authToken = null, string? username = null,
             string? password = null, string returnType = "m3u")
         {
             string userId;
@@ -54,7 +68,7 @@ namespace Jellylist.Controllers
                     return "No login details specified.";
                 }
 
-                var url2 = Program.PublicUrl + "/Users/AuthenticateByName";
+                /*var url2 = Program.PublicUrl + "/Users/AuthenticateByName";
                 var httpRequest2 = (HttpWebRequest)WebRequest.Create(url2);
                 httpRequest2.Method = "POST";
                 
@@ -62,12 +76,7 @@ namespace Jellylist.Controllers
                 httpRequest2.Headers["X-Emby-Authorization"] = "MediaBrowser Client=\"Jellyfin Web\", Device=\"Firefox\", DeviceId=\"TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NDsgcnY6MTA2LjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvMTA2LjB8MTY2Nzk1OTA0NjIxNg11\", Version=\"10.8.5\"";
                 httpRequest2.Headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0";
                 httpRequest2.ContentType = "application/json";
-                
-                var data = @"{
-                                      ""Username"": ""[username]"",
-                                      ""Pw"": ""[pass]""
-                             }".Replace("[username]", username).Replace("[pass]", password);
-                
+
                 using (var streamWriter = new StreamWriter(httpRequest2.GetRequestStream()))
                 {
                     streamWriter.Write(data);
@@ -75,37 +84,29 @@ namespace Jellylist.Controllers
                 
                 var httpResponse2 = (HttpWebResponse)httpRequest2.GetResponse();
                 using var streamReader = new StreamReader(httpResponse2.GetResponseStream());
-                var result = streamReader.ReadToEnd();
+                var result = streamReader.ReadToEnd();*/
+                
+                var data = @"{
+                                      ""Username"": ""[username]"",
+                                      ""Pw"": ""[pass]""
+                             }".Replace("[username]", username).Replace("[pass]", password);
+                var result = await Shared.MakePostRequest(Program.PublicUrl + "/Users/AuthenticateByName", data, 
+                    "MediaBrowser Client=\"Jellyfin Web\", Device=\"Firefox\", DeviceId=\"TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NDsgcnY6MTA2LjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvMTA2LjB8MTY2Nzk1OTA0NjIxNg11\", Version=\"10.8.5\"");
                 var test = JsonConvert.DeserializeObject<dynamic>(result);
                 authToken = test!.AccessToken;
                 userId = test.User.Id;
             }
             else
             {
-                var url2 = Program.PublicUrl + "/Users/Me";
-                var httpRequest2 = (HttpWebRequest)WebRequest.Create(url2);
-                httpRequest2.Method = "GET";
-                
-                httpRequest2.Accept = "application/json";
-                httpRequest2.Headers["X-Emby-Authorization"] = $"MediaBrowser Client=\"Jellyfin Web\", Device=\"Firefox\", DeviceId=\"TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NDsgcnY6MTA2LjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvMTA2LjB8MTY2Nzk1OTA0NjIxNg11\", Version=\"10.8.5\", Token=\"{authToken}\"";
-                httpRequest2.Headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0";
-                httpRequest2.ContentType = "application/json";
-                
-                var httpResponse2 = (HttpWebResponse)httpRequest2.GetResponse();
-                using var streamReader = new StreamReader(httpResponse2.GetResponseStream());
-                var result = streamReader.ReadToEnd();
+                var result = await Shared.MakeGetRequest(Program.PublicUrl + "/Users/Me",
+                    $"MediaBrowser Client=\"Jellyfin Web\", Device=\"Firefox\", DeviceId=\"TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NDsgcnY6MTA2LjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvMTA2LjB8MTY2Nzk1OTA0NjIxNg11\", Version=\"10.8.5\", Token=\"{authToken}\"");
                 var test = JsonConvert.DeserializeObject<dynamic>(result);
 
                 userId = test!.Id;
             }
 
             var url = Program.PublicUrl + $"/Users/{userId}/Items?ParentId={albumId}&Fields=ItemCounts%2CPrimaryImageAspectRatio%2CBasicSyncInfo%2CCanDelete%2CMediaSourceCount&SortBy=ParentIndexNumber%2CIndexNumber%2CSortName";
-
-            var httpRequest = (HttpWebRequest)WebRequest.Create(url);
-            httpRequest.Accept = "application/json";
-            httpRequest.Headers["X-Emby-Authorization"] = $"MediaBrowser Client=\"Jellyfin Web\", Device=\"Firefox\", DeviceId=\"TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NDsgcnY6MTA2LjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvMTA2LjB8MTY2Nzk1OTA0NjIxNg11\", Version=\"10.8.5\", Token=\"{authToken}\"";
-            httpRequest.Headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0";
-            httpRequest.ContentType = "application/json";
+            
             switch (returnType)
             {
                 case "m3u":
@@ -117,17 +118,15 @@ namespace Jellylist.Controllers
                 
                     try
                     {
-                        var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
-                        using var streamReader = new StreamReader(httpResponse.GetResponseStream());
-                        var result = streamReader.ReadToEnd();
+                        var result = await Shared.MakeGetRequest(url,
+                            $"MediaBrowser Client=\"Jellyfin Web\", Device=\"Firefox\", DeviceId=\"TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NDsgcnY6MTA2LjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvMTA2LjB8MTY2Nzk1OTA0NjIxNg11\", Version=\"10.8.5\", Token=\"{authToken}\"");
                         var test = JsonConvert.DeserializeObject<dynamic>(result);
 
 
                         returnstring += $"\n#PLAYLIST:{test!.Items[0].Album}";
-                        returnstring += $"\n#EXTALB:{test!.Items[0].Album}";
-                        returnstring += $"\n#EXTART:{test!.Items[0].AlbumArtist}";
-                        //returnstring += $"\n#EXTIMG: front cover\n{Program.PublicUrl}/Items/{albumId}/Images/Primary"; // VLC doesn't like this for some reason
-                            
+                        returnstring += $"\n#EXTALB:{test.Items[0].Album}";
+                        returnstring += $"\n#EXTART:{test.Items[0].AlbumArtist}";
+
                         foreach (var test2 in test.Items)
                         {
                             returnstring += $"\n#EXTINF:{test2.RunTimeTicks / 10000 / 1000 /* seconds */},{test2.Album}, " +
@@ -149,9 +148,8 @@ namespace Jellylist.Controllers
                 
                     try
                     {
-                        var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
-                        using var streamReader = new StreamReader(httpResponse.GetResponseStream());
-                        var result = streamReader.ReadToEnd();
+                        var result = await Shared.MakeGetRequest(url,
+                            $"MediaBrowser Client=\"Jellyfin Web\", Device=\"Firefox\", DeviceId=\"TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NDsgcnY6MTA2LjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvMTA2LjB8MTY2Nzk1OTA0NjIxNg11\", Version=\"10.8.5\", Token=\"{authToken}\"");
                         var test = JsonConvert.DeserializeObject<dynamic>(result);
 
                         foreach (var test2 in test!.Items)
@@ -188,7 +186,7 @@ namespace Jellylist.Controllers
         /// <returns></returns>
         [HttpGet(Name = "GetTV")]
         // ReSharper disable once InconsistentNaming
-        public string GetTV(string seriesId, string? authToken = null, string? username = null, string? password = null, string returnType = "m3u")
+        public async Task<string> GetTV(string seriesId, string? authToken = null, string? username = null, string? password = null, string returnType = "m3u")
         {
 
             if (authToken == null) // no auth token
@@ -197,7 +195,7 @@ namespace Jellylist.Controllers
                 {
                     return "No login details specified.";
                 }
-                var url2 = Program.PublicUrl + "/Users/AuthenticateByName";
+                /*var url2 = Program.PublicUrl + "/Users/AuthenticateByName";
 
                 var httpRequest2 = (HttpWebRequest)WebRequest.Create(url2);
                 httpRequest2.Method = "POST";
@@ -219,16 +217,19 @@ namespace Jellylist.Controllers
 
                 var httpResponse2 = (HttpWebResponse)httpRequest2.GetResponse();
                 using var streamReader = new StreamReader(httpResponse2.GetResponseStream());
-                var result = streamReader.ReadToEnd();
+                var result = streamReader.ReadToEnd();*/
+                var data = @"{
+                                      ""Username"": ""[username]"",
+                                      ""Pw"": ""[pass]""
+                             }".Replace("[username]", username).Replace("[pass]", password);
+                var result = await Shared.MakePostRequest(Program.PublicUrl + "/Users/AuthenticateByName", data, 
+                    "MediaBrowser Client=\"Jellyfin Web\", Device=\"Firefox\", DeviceId=\"TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NDsgcnY6MTA2LjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvMTA2LjB8MTY2Nzk1OTA0NjIxNg11\", Version=\"10.8.5\"");
                 var test = JsonConvert.DeserializeObject<dynamic>(result);
                 authToken = test!.AccessToken;
             }
 
             var url = Program.PublicUrl + $"/Shows/{seriesId}/Episodes?api_key={authToken}";
-
-            var httpRequest = (HttpWebRequest)WebRequest.Create(url);
-
-            httpRequest.Accept = "application/json";
+            
             switch (returnType)
             {
                 case "m3u":
@@ -240,9 +241,7 @@ namespace Jellylist.Controllers
 
                     try
                     {
-                        var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
-                        using var streamReader = new StreamReader(httpResponse.GetResponseStream());
-                        var result = streamReader.ReadToEnd();
+                        var result = await Shared.MakeGetRequest(url, "");
                         var test = JsonConvert.DeserializeObject<dynamic>(result);
 
 
@@ -279,9 +278,7 @@ namespace Jellylist.Controllers
 
                     try
                     {
-                        var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
-                        using var streamReader = new StreamReader(httpResponse.GetResponseStream());
-                        var result = streamReader.ReadToEnd();
+                        var result = await Shared.MakeGetRequest(url, "");
                         var test = JsonConvert.DeserializeObject<dynamic>(result);
 
                         if (test == null) return returnstring;
