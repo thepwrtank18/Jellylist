@@ -17,7 +17,7 @@ To play a TV show or album in VLC, you'll need it's ID. You can find the ID in t
 * For TV shows, put this into your media player: `http://localhost:[port]/GetTV?seriesId=[id]`
 * For albums, put this in instead: `http://localhost:[port]/GetAlbum?albumId=[id]`
 
-
+Due to how Basic Authentication works, you need to add a backslash (\) behind each colon (:) in your username and password, so Jellylist can process it properly.
 
 What you see on album covers and other metadata beyond the album and track name relies **entirely** on the metadata inside the file.
 
