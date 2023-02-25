@@ -21,7 +21,7 @@ To play a TV show or album in VLC, you'll need it's ID. You can find the ID in t
 
 What you see on album covers and other metadata beyond the album and track name relies **entirely** on the metadata inside the file.
 
-If you don't want to use Basic Auth, you can put the username and password into the URL as `&username=[username]&password=[password]`, or use an auth token or API key by using the `authToken` parameter.
+If you don't want to use Basic Auth (or your media player doesn't support it), you can put the username and password into the URL as `&username=[username]&password=[password]`, or use an auth token or API key by using the `authToken` parameter.
 
 If you want to mass download an entire show or album with a program like Free Download Manager, or your media player doesn't support EXTM3U, you can add `&returnType=txt` to the end, removing all metadata other than download links.
 
