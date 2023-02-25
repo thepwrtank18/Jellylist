@@ -1,11 +1,14 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 // ReSharper disable StringLiteralTypo
 // ReSharper disable IdentifierTypo
 // ReSharper disable CommentTypo
 // ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable SuggestVarOrType_Elsewhere
 
 namespace Jellylist.Controllers
 {
@@ -66,7 +69,29 @@ namespace Jellylist.Controllers
             {
                 if (username == null|| password == null) // no user+pass
                 {
-                    return "No login details specified.";
+                    Dictionary<string, string?> requestHeaders = Request.Headers.ToDictionary<KeyValuePair<string, StringValues>, string, string?>(header => header.Key, header => header.Value);
+                    try
+                    {
+                        if (requestHeaders["Authorization"] == null ||
+                            !requestHeaders["Authorization"]!.Contains("Basic")) throw new KeyNotFoundException();
+                        string userAndPass = Encoding.UTF8.GetString(Convert.FromBase64String(requestHeaders["Authorization"]!.Replace("Basic ", ""))).Replace(@"\:", "[Jellylist_Colon]");
+                        
+                        string[] test0 = userAndPass.Split(new[] { ':' }, StringSplitOptions.None);
+                        if (test0.Length > 2)
+                        {
+                            Response.StatusCode = 400;
+                            return "Username and/or password is in an incorrect format. Add a backslash (\\) to all colons (:) in your username and/or password.";
+                        }
+
+                        username = test0[0].Replace("[Jellylist_Colon]", ":");
+                        password = test0[1].Replace("[Jellylist_Colon]", ":");
+                    }
+                    catch (KeyNotFoundException)
+                    {
+                        Response.Headers.Add("WWW-Authenticate", $"Basic realm=\"Jellylist version {Program.Version} on instance {Program.PublicUrl} - Add a backslash (\\) to all colons (:) in your username and/or password\"");
+                        Response.StatusCode = 401;
+                        return "No login details specified. Please log in with your Jellyfin instance account. Add a backslash (\\) to all colons (:) in your username and/or password.";
+                    }
                 }
 
                 string data = @"{
@@ -118,10 +143,12 @@ namespace Jellylist.Controllers
                             returnstring += "\n" + Program.PublicUrl + $"/Items/{test2.Id}/Download?api_key={authToken}";
                         }
 
+                        Response.StatusCode = 200;
                         return returnstring;
                     }
                     catch (WebException e)
                     {
+                        Response.StatusCode = 404;
                         return e.Message.Contains("404") ? "Not an album." : e.Message;
                     }
                 }
@@ -140,14 +167,17 @@ namespace Jellylist.Controllers
                             returnstring += "\n" + Program.PublicUrl + $"/Items/{test2.Id}/Download?api_key={authToken}";
                         }
 
+                        Response.StatusCode = 200;
                         return returnstring;
                     }
                     catch (WebException e)
                     {
+                        Response.StatusCode = 404;
                         return e.Message.Contains("404") ? "Not an album." : e.Message;
                     }
                 }
                 default:
+                    Response.StatusCode = 400;
                     return "Invalid type.";
             }
         }
@@ -176,7 +206,29 @@ namespace Jellylist.Controllers
             {
                 if (username == null || password == null) // no user+pass
                 {
-                    return "No login details specified.";
+                    Dictionary<string, string?> requestHeaders = Request.Headers.ToDictionary<KeyValuePair<string, StringValues>, string, string?>(header => header.Key, header => header.Value);
+                    try
+                    {
+                        if (requestHeaders["Authorization"] == null ||
+                            !requestHeaders["Authorization"]!.Contains("Basic")) throw new KeyNotFoundException();
+                        string userAndPass = Encoding.UTF8.GetString(Convert.FromBase64String(requestHeaders["Authorization"]!.Replace("Basic ", ""))).Replace(@"\:", "[Jellylist_Colon]");
+                        
+                        string[] test0 = userAndPass.Split(new[] { ':' }, StringSplitOptions.None);
+                        if (test0.Length > 2)
+                        {
+                            Response.StatusCode = 400;
+                            return "Username and/or password is in an incorrect format. Add a backslash (\\) to all colons (:) in your username and/or password.";
+                        }
+
+                        username = test0[0].Replace("[Jellylist_Colon]", ":");
+                        password = test0[1].Replace("[Jellylist_Colon]", ":");
+                    }
+                    catch (KeyNotFoundException)
+                    {
+                        Response.Headers.Add("WWW-Authenticate", $"Basic realm=\"Jellylist version 2.1 on instance {Program.PublicUrl} - Add a backslash (\\\\) to all colons (:) in your username and/or password\"");
+                        Response.StatusCode = 401;
+                        return "No login details specified. Please log in with your Jellyfin instance account. Add a backslash (\\) to all colons (:) in your username and/or password.";
+                    }
                 }
                 string data = @"{
                                       ""Username"": ""[username]"",
@@ -228,6 +280,7 @@ namespace Jellylist.Controllers
                     }
                     catch (WebException e)
                     {
+                        Response.StatusCode = 404;
                         return e.Message.Contains("404") ? "Not a TV show." : e.Message;
                     }
                 }
@@ -247,15 +300,18 @@ namespace Jellylist.Controllers
                             returnstring += Program.PublicUrl + $"/Items/{test2.Id}/Download?api_key={authToken}\n";
                         }
 
+                        Response.StatusCode = 200;
                         return returnstring;
                     }
                     catch (WebException e)
                     {
+                        Response.StatusCode = 404;
                         return e.Message.Contains("404") ? "Not an album." : e.Message;
                     }
                     
                 }
                 default:
+                    Response.StatusCode = 400;
                     return "Invalid type.";
             }
         }

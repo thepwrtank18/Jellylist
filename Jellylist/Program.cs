@@ -9,9 +9,12 @@ namespace Jellylist
     {
         [SuppressMessage("Usage", "CA2211:Non-constant fields should not be visible")] 
         public static string PublicUrl = "";
+        public const string Version = "2.2";
 
         public static void Main(string[] args)
         {
+            Console.WriteLine($"Jellylist - version {Version}");
+            
             int currentArg = -1;
             if (!args.Contains("--jellyfinUrl"))
             {
