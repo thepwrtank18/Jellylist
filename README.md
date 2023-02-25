@@ -14,12 +14,14 @@ Web server that creates M3U files for TV shows on a Jellyfin instance.
 After that, the web server is set up (minus port forwarding and stuff, but that's your problem to deal with).
 
 To play a TV show or album in VLC, you'll need it's ID. You can find the ID in the URL of a TV show or album (ex: https://demo.jellyfin.org/web/index.html#!/details?id=05991932707d2c668148d8ed19cdb544).
-* For TV shows, put this into your media player: `http://localhost:[port]/GetTV?seriesId=[id]&username=[username]&password=[password]`
-* For albums, put this in instead: `http://localhost:[port]/GetAlbum?albumId=[id]&username=[username]&password=[password]`
+* For TV shows, put this into your media player: `http://localhost:[port]/GetTV?seriesId=[id]`
+* For albums, put this in instead: `http://localhost:[port]/GetAlbum?albumId=[id]`
+
+
 
 What you see on album covers and other metadata beyond the album and track name relies **entirely** on the metadata inside the file.
 
-Don't want to use usernames and passwords? You can use an auth token or API key by using the `authToken` parameter instead of `username` and `password`.
+If you don't want to use Basic Auth, you can put the username and password into the URL as `&username=[username]&password=[password]`, or use an auth token or API key by using the `authToken` parameter.
 
 If you want to mass download an entire show or album with a program like Free Download Manager, or your media player doesn't support EXTM3U, you can add `&returnType=txt` to the end, removing all metadata other than download links.
 
